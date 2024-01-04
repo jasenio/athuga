@@ -1,0 +1,837 @@
+@import "./breakpoints.scss";
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;700;800&display=swap');
+html{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-size: 16px;
+    font-family: 'Open Sans', sans-serif;
+}
+@mixin defaultTest{
+    width: 100vw;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 50px;
+    button, a{
+        width: 90%;
+        height: 30px;
+        margin: 10px;
+    }
+    
+    input{
+        width: 90%;
+        height: 30px;
+        margin: 20px;
+    }
+}
+body{
+    margin: 0;
+}
+*, *:before, *:after {
+    box-sizing: inherit;
+}
+.container{
+    min-width: 320px;
+    width: 100%;
+}
+.Home {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  text-align: center;
+
+  .title {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+  }
+
+  .button-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+  }
+
+  .button {
+      padding: 10px 20px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background-color 0.3s;
+  }
+
+  .button:hover {
+      background-color: #45a049;
+  }
+
+  .button:active {
+      background-color: #3e8e41;
+  }
+}
+
+.Login {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+
+  form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 300px;
+
+    label {
+      margin-bottom: 5px;
+    }
+
+    input {
+      margin-bottom: 10px;
+      padding: 5px;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+  }
+
+  .loginButton {
+    margin-top: 10px;
+    padding: 10px 20px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    &:hover{
+      background-color: #398a3c;
+    }
+    &:active{
+      background-color: #398a3c;
+    }
+  }
+
+  .Register,.Home {
+    margin-top: 10px;
+    max-height: 1em;
+    text-decoration: none;
+    color: #065fd4;
+  }
+  .error{
+    font-size: .75em;
+    font-weight: bold;
+    font-style: normal;
+    color: red;
+    margin: .5em;
+    margin-bottom: 1em;
+  }
+}
+.Register {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+
+  form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%; /* Take full width of the container */
+
+    label {
+      margin-bottom: 5px;
+    }
+
+    input {
+      margin-bottom: 10px;
+      padding: 5px;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .CheckTeacher {
+      width: 2em;
+      height: 2em;
+    }
+
+    p {
+      font-size: 0.75em;
+      font-style: italic;
+      margin: 0.5em;
+      margin-bottom: 1em;
+    }
+
+    .Warning {
+      font-size: 0.75em;
+      font-weight: bold;
+      font-style: normal;
+      color: red;
+      margin: 0.5em;
+      margin-bottom: 1em;
+    }
+
+    div {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-around;
+      min-width: 10em;
+
+      label {
+        margin-right: 10px;
+        margin-bottom: 0; /* Reset margin for better spacing */
+      }
+
+      input {
+        width: 150px;
+        margin-bottom: 10px;
+      }
+    }
+    
+  }
+
+  .registerButton {
+    margin-top: 10px;
+    padding: 10px 20px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #398a3c;
+    }
+
+    &:active {
+      background-color: #398a3c;
+    }
+  }
+
+  .Register,
+  .Home {
+    margin-top: 10px;
+    max-height: 1em;
+    text-decoration: none;
+    color: #065fd4;
+  }
+
+  .error {
+    font-size: 0.75em;
+    font-weight: bold;
+    font-style: normal;
+    color: red;
+    margin: 0.5em;
+    margin-bottom: 1em;
+  }
+
+  /* Media query for screens smaller than 600px (mobile) */
+  @media only screen and (max-width: 600px) {
+    form {
+      max-width: 100%; /* Full width on smaller screens */
+    }
+
+    div {
+      flex-direction: column; /* Adjust layout for mobile */
+      align-items: center;
+    }
+  }
+
+  /* Media query for screens larger than 600px (desktop) */
+  @media only screen and (min-width: 601px) {
+    form {
+      max-width: 600px; /* Limit width on larger screens */
+    }
+  }
+}
+
+.Dashboard{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  .Logout, .Request {
+    background-color: #f44336;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    transition-duration: 0.4s;
+    cursor: pointer;
+  }
+  
+  .Logout, .Request:hover {
+    background-color: red;
+  }
+  
+  .ClassPeriods {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+  }
+  
+  .button {
+    display: flex;
+    flex-direction: space-between;
+    background-color: grey;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    transition-duration: 0.4s;
+    cursor: pointer;
+  }
+  
+  .button:hover {
+    background-color: green;
+  }
+  
+  .active-Period {
+    background-color: #008cba;
+  }
+    .ClassPeriods{
+        width: 90%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        .Period{
+            width: 100%;
+            height: 50px;
+            display: flex;
+            justify-content:space-between;
+            &:hover{
+                background-color: lightgrey;
+            }
+            &:active{
+                background-color: grey;
+            }
+        }
+        .active-Period{
+            width: 100%;
+            height: 50px;
+            display: flex;
+            border: 1px solid darkgreen;
+            background-color:lightgreen;
+            justify-content:space-between;
+            &:hover{
+                background-color: rgb(94, 237, 94);
+            }
+            &:active{
+                background-color: green;
+            }
+        }
+    }
+
+    .popup {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black background */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000; /* Ensure it's above other elements */
+      }
+      .Create {
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); /* Add a shadow for the popup */
+        text-align: center;
+          
+        button {
+          display: flex;
+          flex-direction: space-between;
+          background-color: grey;
+          border: none;
+          color: white;
+          padding: 10px 20px;
+          text-align: center;
+          text-decoration: none;
+          display: inline-block;
+          font-size: 16px;
+          margin: 4px 2px;
+          transition-duration: 0.4s;
+          cursor: pointer;
+        }
+        button:hover {
+          background-color: rgb(179, 179, 179);
+        }
+        
+      }
+      .BadAlert {
+        position: fixed;
+        top: 1em;
+        left: 50%; /* Set left to 50% */
+        transform: translateX(-50%); 
+        height:2.5em;
+        display:flex;
+        align-items:center;
+        font-size:.9em;
+        background-color: lightcoral; /* Light red background color */
+        color: darkred; /* Dark red text color */
+        padding: 10px;
+        text-align: center;
+        border: 2px solid darkred; /* Dark red bottom border */
+        border-radius: 100em; /* Rounded corners for the bottom */
+      
+        /* You can add more styles as needed */
+        z-index: 1001;
+      }
+      .GoodAlert {
+        position: fixed;
+        top: 1em;
+        left: 50%;
+        transform: translateX(-50%); 
+        height:2.5em;
+        display:flex;
+        align-items:center;
+        font-size:.9em;
+        background-color: lightgreen; /* Light red background color */
+        color: darkgreen; /* Dark red text color */
+        padding: 10px;
+        text-align: center;
+        border: 2px solid darkgreen; /* Dark red bottom border */
+        border-radius: 100em; /* Rounded corners for the bottom */
+      
+        /* You can add more styles as needed */
+        z-index: 1001;
+      }
+}
+.Classroom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+
+  .exit,
+  .delete {
+    width: 100%;
+    max-width: 10em;
+    margin-top: 10px;
+    padding: 10px 20px;
+    cursor: pointer;
+
+    &.exit {
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+
+      &:hover {
+        background-color: #398a3c;
+      }
+
+      &:active {
+        background-color: #398a3c;
+      }
+    }
+
+    &.delete {
+      background-color: #f44336;
+      color: white;
+      border: none;
+      border-radius: 4px;
+
+      &:hover {
+        background-color: red;
+      }
+
+      &:active {
+        background-color: red;
+      }
+    }
+  }
+
+  .section {
+    display: flex;
+    width: 100%;
+    justify-content: space-around;
+  }
+
+  .INSIDE,
+  .OUTSIDE,
+  .QUEUE,
+  .PASSES {
+    flex: 1;
+  }
+
+  .INSIDE ul,
+  .OUTSIDE ul,
+  .QUEUE ul,
+  .PASSES ul {
+    list-style-type: none;
+    padding: 0;
+  }
+
+  .INSIDE p,
+  .OUTSIDE p,
+  .QUEUE p,
+  .PASSES p {
+    font-weight: bold;
+    text-align: center;
+  }
+
+  .INSIDE li,
+  .OUTSIDE li,
+  .QUEUE li,
+  .PASSES li {
+    background-color: lightgray;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+  }
+
+  .popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+
+  .Create {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    text-align: center;
+  }
+
+  .BadAlert,
+  .GoodAlert {
+    position: fixed;
+    top: 1em;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 2.5em;
+    display: flex;
+    align-items: center;
+    font-size: 0.9em;
+    padding: 10px;
+    text-align: center;
+    border-radius: 100em;
+    z-index: 1001;
+  }
+
+  .BadAlert {
+    background-color: lightcoral;
+    color: darkred;
+    border: 2px solid darkred;
+  }
+
+  .GoodAlert {
+    background-color: lightgreen;
+    color: darkgreen;
+    border: 2px solid darkgreen;
+  }
+
+  @media only screen and (max-width: 600px) {
+    .exit,
+    .delete {
+      max-width: none;
+    }
+  }
+}
+.Control {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+
+  & > div {
+    margin: 10px;
+  }
+
+  input[type="text"] {
+    padding: 8px;
+    margin-right: 10px;
+  }
+
+  select {
+    padding: 8px;
+    margin-right: 10px;
+  }
+
+  button {
+    padding: 8px 12px;
+    margin-right: 10px;
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+
+    &:hover {
+      background-color: #45a049;
+    }
+
+    &:active {
+      background-color: #3e8e41;
+    }
+  }
+
+  .cancelB {
+    font-size: 2.5em;
+    width: 70%;
+    background-color: #ffd700;
+
+    &:hover {
+      background-color: #ffd700;
+    }
+
+    &:active {
+      background-color: #ffd700;
+    }
+  }
+  .CheckOut {
+    font-size: 2.5em;
+    width: 70%;
+    background-color: red;
+
+    &:hover {
+      background-color: rgb(249, 19, 19);
+    }
+
+    &:active {
+      background-color: red;
+    }
+  }
+  .CheckIn {
+    font-size: 2.5em;
+    width: 70%;
+    background-color: #4CAF50;
+
+    &:hover {
+      background-color: #45a049;
+    }
+
+    &:active {
+      background-color: #3e8e41;
+    }
+  }
+}
+.Admin{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh; /* Adjust as needed */
+
+  .exit {
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 4px;
+
+    &:hover {
+      background-color: #d32f2f;
+    }
+
+    &:active {
+      background-color: #b71c1c;
+    }
+  }
+
+  h1 {
+    font-size: 24px;
+    margin: 10px 0;
+  }
+
+  div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 10px;
+
+    & > div {
+      margin: 10px;
+    }
+  
+    input[type="text"] {
+      padding: 8px;
+      margin-right: 10px;
+      width: 90%;
+      min-width: 300px;
+    }
+  
+    select {
+      padding: 8px;
+      margin-right: 10px;
+    }
+  
+    button {
+      padding: 8px 12px;
+      margin-right: 10px;
+      cursor: pointer;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+  
+      &:hover {
+        background-color: #45a049;
+      }
+  
+      &:active {
+        background-color: #3e8e41;
+      }
+    }
+  }
+  
+  .popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Ensure it's above other elements */
+  }
+  .Create {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); /* Add a shadow for the popup */
+    text-align: center;
+      
+    button {
+      display: flex;
+      flex-direction: space-between;
+      background-color: grey;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 4px 2px;
+      transition-duration: 0.4s;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: rgb(179, 179, 179);
+    }
+    
+  }
+  .BadAlert {
+    position: fixed;
+    top: 1em;
+    left: 50%; /* Set left to 50% */
+    transform: translateX(-50%); 
+    height:2.5em;
+    display:flex;
+    align-items:center;
+    font-size:.9em;
+    background-color: lightcoral; /* Light red background color */
+    color: darkred; /* Dark red text color */
+    padding: 10px;
+    text-align: center;
+    border: 2px solid darkred; /* Dark red bottom border */
+    border-radius: 100em; /* Rounded corners for the bottom */
+  
+    /* You can add more styles as needed */
+    z-index: 1001;
+  }
+  .GoodAlert {
+    position: fixed;
+    top: 1em;
+    left: 50%;
+    transform: translateX(-50%); 
+    height:2.5em;
+    display:flex;
+    align-items:center;
+    font-size:.9em;
+    background-color: lightgreen; /* Light red background color */
+    color: darkgreen; /* Dark red text color */
+    padding: 10px;
+    text-align: center;
+    border: 2px solid darkgreen; /* Dark red bottom border */
+    border-radius: 100em; /* Rounded corners for the bottom */
+  
+    /* You can add more styles as needed */
+    z-index: 1001;
+  }
+}
+.About{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: auto; /* Adjust as needed */
+  overflow: visible;
+  padding: 1em;
+  img{
+    border: solid 1px black;
+    width: 85%;
+    height: auto;
+  }
+  .exit {
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 4px;
+
+    &:hover {
+      background-color: #d32f2f;
+    }
+
+    &:active {
+      background-color: #b71c1c;
+    }
+  }
+
+  h1 {
+    font-size: 24px;
+    margin: 10px 0;
+  }
+
+  div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 10px;
+  }
+  p{
+    width: 85%;
+    text-align: center;
+  }
+  a{
+    max-height: 2em;
+  }
+}
