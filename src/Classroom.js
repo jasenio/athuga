@@ -7,11 +7,11 @@ import { modelNames } from 'mongoose';
 export const Classroom = () => {
   const Navigate = useNavigate();
   //Classroom Verification
-    const { classroomId } = useParams();
-    const [classroomData, setClassroomData] = useState(null);
-    async function fetchData() {
-      console.log("Tried to fetch");
-      try {
+  const { classroomId } = useParams();
+  const [classroomData, setClassroomData] = useState(null);
+  async function fetchData() {
+    console.log("Tried to fetch");
+    try {
           const response = await fetch('https://dmg0caf7ytwae.cloudfront.net/classroom/'+classroomId, {
               method: 'GET',
               headers: {
@@ -46,13 +46,13 @@ export const Classroom = () => {
   const period = classroomId.charAt(classroomId.length - 1);
 
 //Update lists
-  const [studentsInside, setStudentsInside] = useState([]);
-const [studentsOutside, setStudentsOutside] = useState([]);
-const [studentsWaiting, setStudentsWaiting] = useState([]);
-const [studentsRequests, setStudentsRequests] = useState([]);
-const [selectedName, setSelectedName] = useState('');
-const [inputName, setInputName] = useState('');
-const fetchUpdatedData = async () => {
+  const [stFudentsInside, setStudentsInside] = useState([]);
+  const [studentsOutside, setStudentsOutside] = useState([]);
+  const [studentsWaiting, setStudentsWaiting] = useState([]);
+  const [studentsRequests, setStudentsRequests] = useState([]);
+  const [selectedName, setSelectedName] = useState('');
+  const [inputName, setInputName] = useState('');
+  const fetchUpdatedData = async () => {
   try {
       const response = await fetch('https://dmg0caf7ytwae.cloudfront.net/class/lists/' + classroomId, {
           method: 'GET',
@@ -172,7 +172,6 @@ const fetchUpdatedData = async () => {
     };
   }, []);
 
-  
   const sendWebSocketMessage = (action, name = '', request = '') => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
       const temp1 = Cookies.get('sessionData');
@@ -192,14 +191,11 @@ const fetchUpdatedData = async () => {
     if(teacher){
       if (window.confirm('Do you want to add ' + name + ' to class?')) {
       sendWebSocketMessage('add-to-inside', name);
-    } else {
-      // Logic for cancellation
     }
   }else{
     sendWebSocketMessage('add-to-inside', name);
   }
   };
-
   const moveWait = (name) => {
     if(name==='') return;
     if(teacher){
@@ -213,27 +209,22 @@ const fetchUpdatedData = async () => {
   }
     
   };
-
   const moveIn = (name) => {
     if(name==='') return;
     if(teacher){
       if (window.confirm('Do you want to move ' + name + ' inside?')) {
       sendWebSocketMessage('move-to-inside', name);
-    } else {
-      // Logic for cancellation
     }
   }else{
     sendWebSocketMessage('move-to-inside', name);
   }
   };
-
   const moveOut = (name) => {
     if(name==='') return;
     if(teacher){
       if (window.confirm('Do you want to move ' + name + ' outside of class?')) {
       sendWebSocketMessage('move-to-outside', name);
     } else {
-      // Logic for cancellation
     }
   }else{
     sendWebSocketMessage('move-to-outside', name);
@@ -245,7 +236,6 @@ const fetchUpdatedData = async () => {
       if (window.confirm('Do you want to cancel ' + name + ' from queue?')) {
       sendWebSocketMessage('cancel', name);
     } else {
-      // Logic for cancellation
     }
   }else{
     sendWebSocketMessage('cancel', name);
@@ -272,6 +262,7 @@ const fetchUpdatedData = async () => {
       window.location.href = '/dashboard'; 
     }
   };
+
 //Generate Class
 const deleteClassroom = async (name) => {
   if(name==='') return;
@@ -287,7 +278,6 @@ const deleteClassroom = async (name) => {
       //credentials: 'include',
     });
     if (!response.ok) {
-      // Handle non-success HTTP status codes (e.g., 404)
       const errorData = await response.json(); // Error data is fetched and parsed as JSON
       throw new Error(errorData.error); // Log the error message
     }

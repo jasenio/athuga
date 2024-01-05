@@ -9,9 +9,9 @@ mongoose.connect(process.env.MONGO_URI, {
     useUnifiedTopology: true,
   });
   
-  mongoose.connection.on('error', (error) => {
-    console.error('MongoDB connection error:', error);
-  });
+mongoose.connection.on('error', (error) => {
+  console.error('MongoDB connection error:', error);
+});
 
 //Schema
 const UserSchema = new mongoose.Schema({
@@ -50,30 +50,31 @@ const UserSchema = new mongoose.Schema({
       }
   ],
 });
+
+//Compares encrypted password
 UserSchema.methods.comparePassword = async function (candidatePassword) {
     return bcrypt.compare(candidatePassword, this.password);
 };
 const User = mongoose.model('users', UserSchema);
 
 //Encryption Functions
-// Hash a password and return the hashed version
+//Hashes passwords
 async function hashPassword(password) {
     const saltRounds = 10;
   return bcrypt.hash(password, saltRounds);
 }
 
-// Verify a password against a hashed password
+// Verifies the password
 async function verifyPassword(plainPassword, hashedPassword) {
   try {
-    // Use bcrypt.compare to compare the plain password with the hashed password
     const passwordMatch = await bcrypt.compare(plainPassword, hashedPassword);
     return passwordMatch;
   } catch (error) {
-    // Handle any potential errors, e.g., invalid hashed password
     console.error(error);
-    return false; // Return false in case of an error
+    return false; 
   }
 }
+
 async function getUserByUsername(username) {
   return User.findOne({ username }).exec();
 }  

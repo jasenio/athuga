@@ -4,10 +4,6 @@ const {isTeacher} = require('../auth');
 const {
     Classroom,
 } = require('../classroom');
-const{
-    User,
-    getUserByUsername,
-} = require('../user');
 
 //Checks if user is authenticated
 function isAuthenticated(req, res, next) {
@@ -20,16 +16,14 @@ function isAuthenticated(req, res, next) {
       res.redirect('/login');
     }
   }
-//Get dashboard
-classRouter.get('/classroom', isAuthenticated, (req, res) => {
-    res.set('Content-Type', 'text/plain'); // Set content type to plain text
-    return res.send(`Session Ongoing`);
-  });
+
+  //Adds to waiting list
   classRouter.get('/add-to-waiting', isAuthenticated, (req, res) => {
-    res.set('Content-Type', 'text/plain'); // Set content type to plain text
+    res.set('Content-Type', 'text/plain');
     return res.send(`Session Ongoing`);
   });
 
+  //Adds to the wait list
   classRouter.post('/add-to-waiting/:id/:username', isAuthenticated, async (req, res) => {
     console.log("check");
     const { id } = req.params;
@@ -41,7 +35,7 @@ classRouter.get('/classroom', isAuthenticated, (req, res) => {
     return res.status(200).json({ message: 'Student added to the waiting list' });
   });
   
-  // Remove student from the studentsWaiting
+  // Remove student from the students Waiting
   classRouter.post('/remove-from-waiting/:id', isAuthenticated, async (req, res) => {
     const { id } = req.params;
     const teacherUsername = id.substring(0, id.length - 1);
@@ -83,13 +77,14 @@ classRouter.get('/classroom', isAuthenticated, (req, res) => {
     const period = id.substring(id.length - 1);
     const { request } = req.body;
     const classroom = await Classroom.findOne({ username: teacherUsername, period });
+    //Adds the student
     classroom.requests.push({ studentId: req.session.username, request });
-    // Logic to handle specific student requests
     await classroom.save();
     return res.status(200).json({ message: 'Student request handled' });
   });
-   //Get lists
-   classRouter.get('/lists/:id', isAuthenticated, async (req, res) => {
+
+  //Returns all lists from a class
+  classRouter.get('/lists/:id', isAuthenticated, async (req, res) => {
     try{const { id } = req.params;
     const teacherUsername = id.substring(0, id.length - 1);
     const period = id.substring(id.length - 1);
@@ -105,50 +100,33 @@ classRouter.get('/classroom', isAuthenticated, (req, res) => {
       return res.status(500).json({ error: 'Internal server error' });
     }
   });
-  
 
-// Logout
-classRouter.get('/logout', async (req, res) => {
-  try {
-      console.log("logOut");
-      // Debug statement for session
-      console.log("Session before destroy: ", req.session);
+  // Logout
+  classRouter.get('/logout', async (req, res) => {
+    try {
+        console.log("logOut");
+        console.log("Session before destroy: ", req.session);
 
-      try {
-          await new Promise((resolve, reject) => {
-              req.session.destroy(err => {
-                  if (err) {
-                      console.error("Error destroying session:", err);
-                      reject(err);
-                  } else {
-                      console.log("Session destroyed successfully.");
-                      resolve();
-                  }
-              });
-          });
-      } catch (error) {
-          console.error("Error while destroying session:", error);
-      }
+        //Try to clear the sessionData cookie
+        try {
+            await new Promise((resolve, reject) => {
+                res.clearCookie('sessionData');
+                console.log("Cookie cleared.");
+                resolve();
+            });
+        } catch (error) {
+            console.error("Error while clearing cookie:", error);
+        }
 
-      try {
-          await new Promise((resolve, reject) => {
-              res.clearCookie('sessionData');
-              console.log("Cookie cleared.");
-              resolve();
-          });
-      } catch (error) {
-          console.error("Error while clearing cookie:", error);
-      }
-
-      console.log('end');
-      // Send response only once
-      return res.status(201).json('deleted');
-  } catch (error) {
-      console.error("General error:", error);
-      // Handle the error appropriately
-      return res.status(500).json({ error: "An error occurred." });
-  }
-});
+        console.log('end');
+        // Send response only once
+        return res.status(201).json('deleted');
+    } catch (error) {
+        console.error("General error:", error);
+        // Handle the error appropriately
+        return res.status(500).json({ error: "An error occurred." });
+    }
+  });
   
   module.exports = {
     classRouter,

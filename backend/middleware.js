@@ -18,15 +18,15 @@ const configureMiddleware = (app) => {
                   sameSite:"None",
                   path:"/",
                   domain: "athuga.com",
-                 }}));
-    const test = false;
-    const host = test? "http://localhost:3000" : "https://athuga.com";
-    app.use(cors({
-      origin: 'https://athuga.com', // Replace with the actual origin of your frontend application
-      methods: 'OPTIONS, GET, POST, DELETE',
-      allowedHeaders: '*', // Make sure to replace this with the actual allowed headers
-      credentials: true,
-    }));
+  }}));
+  const test = false;
+  const host = test? "http://localhost:3000" : "https://athuga.com";
+  app.use(cors({
+    origin: 'https://athuga.com', 
+    methods: 'OPTIONS, GET, POST, DELETE',
+    allowedHeaders: '*', 
+    credentials: true,
+  }));
 };
 
 module.exports = { configureMiddleware };

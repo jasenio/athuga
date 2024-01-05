@@ -9,37 +9,8 @@ export const Dashboard = () => {
     //Logging out
     function deleteCookie(cookieName) {
       document.cookie = cookieName + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-  }
-    const logout = async (e) => {
-        e.preventDefault();
-        try {
-            const response = await fetch('https://dmg0caf7ytwae.cloudfront.net/logout', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-           //     credentials: 'include',
-            });
-            if (response.status === 302) {
-              window.location.href = '/login'; // Redirect to the '/login' route
-          } 
-            if (!response.ok) {
-                throw new Error("Couldn't logout");
-            }
-            deleteCookie('sessionData');
-            deleteCookie('connect.sid');
-            Navigate('/');
-        } catch (error) {
-            console.error('Error:' +  error);
-        }
     }
-
-    //Cookie data
-    const temp = Cookies.get('sessionData');
-    const cookieData = JSON.parse(temp || '{}');
-    const username = cookieData?.username || '';
-    const teacher = cookieData?.teacher || false;
-    const [message, setMessage] = useState(false);
+    
     //Alerts
     const [del, setDel] = useState("");
     const [green, setGreen] = useState("");
@@ -52,8 +23,6 @@ export const Dashboard = () => {
     //Loading
     const time = 2000;
     
-    
-
     const fetchData = async() => {
         console.log("Tried to fetch");
         const temp = Cookies.get('sessionData');
@@ -90,8 +59,9 @@ export const Dashboard = () => {
       if(teacher) fetchData();
       if(Cookies.get('sessionData')===null)  window.location.href = '/login';
     }, []);
+
+    //Custom alerts from red and green
     useEffect(() => {
-        // Custom alert logic
         const timer = setTimeout(() => {
           setDel("");
         }, time);
@@ -99,9 +69,8 @@ export const Dashboard = () => {
         return () => {
           clearTimeout(timer);
         };
-      }, [del]);
-      useEffect(() => {
-        // Custom alert logic
+    }, [del]);
+    useEffect(() => {
         const timer = setTimeout(() => {
           setGreen("");
         }, time);
@@ -109,15 +78,42 @@ export const Dashboard = () => {
         return () => {
           clearTimeout(timer);
         };
-      }, [green]);
-    //Authorization
-    const isauth = () => {
-        const userId = Cookies.get('sessionData');
-        return(!!userId);
-      }
+    }, [green]);
 
-      //Generate Class
-      const createClassroom = async () => {
+
+    const logout = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await fetch('https://dmg0caf7ytwae.cloudfront.net/logout', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+           //     credentials: 'include',
+            });
+            if (response.status === 302) {
+              window.location.href = '/login'; // Redirect to the '/login' route
+          } 
+            if (!response.ok) {
+                throw new Error("Couldn't logout");
+            }
+            deleteCookie('sessionData');
+            deleteCookie('connect.sid');
+            Navigate('/');
+        } catch (error) {
+            console.error('Error:' +  error);
+        }
+    }
+
+    //Cookie data
+    const temp = Cookies.get('sessionData');
+    const cookieData = JSON.parse(temp || '{}');
+    const username = cookieData?.username || '';
+    const teacher = cookieData?.teacher || false;
+    const [message, setMessage] = useState(false);
+
+    //Creates the Class
+    const createClassroom = async () => {
         try {
           const response = await fetch('https://dmg0caf7ytwae.cloudfront.net/classrooms/', {
             method: 'post',
@@ -128,12 +124,11 @@ export const Dashboard = () => {
             //credentials: 'include',
           });
           if (response.status === 302) {
-            window.location.href = '/login'; // Redirect to the '/login' route
+            Navigate(`/login`);
         }
           if (!response.ok) {
-            // Handle non-success HTTP status codes (e.g., 404)
-            const errorData = await response.json(); // Error data is fetched and parsed as JSON
-            throw new Error(errorData.error); // Log the error message
+            const errorData = await response.json(); 
+            throw new Error(errorData.error); 
           }
 
           const data = await response.json();
@@ -151,17 +146,17 @@ export const Dashboard = () => {
         //Navigate(`/Dashboard/`+id);
         } catch (error) {
           console.error('Error:', error);
-          // Handle the error, e.g., display an error message to the user
         }
-      };
+    };
     
-      //Checks if there is a classroom is available
-      const checkClassroom =  async (teacherUsername, periodNumber, periodClass) =>  {
+    //Checks if there is a classroom is available
+    const checkClassroom =  async (teacherUsername, periodNumber, periodClass) =>  {
         console.log("Checking classroom");
         if(teacherUsername==='None'){
           alert('No Class');
           return;
         }
+
         try {
           const url = `https://dmg0caf7ytwae.cloudfront.net/classrooms/${teacherUsername}`;
           const temp = Cookies.get('sessionData');
@@ -174,17 +169,15 @@ export const Dashboard = () => {
               'Content-Type': 'application/json',
             },
            // credentials: 'include',
-          
           };
           
           const response = await fetch(url, options);
             if (response.status === 302) {
-              window.location.href = '/login'; // Redirect to the '/login' route
+              Navigate(`/login`);
           }
             if (!response.ok) {
-                // Handle non-success HTTP status codes (e.g., 404)
-                const errorData = await response.json(); // Error data is fetched and parsed as JSON
-                throw new Error(errorData.error); // Log the error message
+                const errorData = await response.json();
+                throw new Error(errorData.error);
             } 
 
             //Found class
@@ -196,7 +189,7 @@ export const Dashboard = () => {
             
             //Handles navigation
             else{
-                 setGreen("Entered Class");
+                setGreen("Entered Class");
                 const id = teacherUsername + periodNumber;
                 Navigate(`/Dashboard/`+id);
             }
@@ -205,9 +198,9 @@ export const Dashboard = () => {
             if (error.message === 'No classrooms found for the teacher') {
                 //Found class
                 setDel("No Classroom found for teacher: "+teacherUsername + " Period "+periodNumber);
+                //Prompts teachers to create classess
                 if(teacher) openCreate(periodNumber, periodClass);
             }
-            // Handle the error, e.g., display an error message to the user
         }
     }
 
@@ -216,8 +209,10 @@ export const Dashboard = () => {
         setPerNum(periodNumber);
         setPerClass(periodClass);
         setMessage(true);
-      };
-      const request = () => {
+    };
+
+    //Moves to admin page
+    const request = () => {
         Navigate('/Request');
         window.location.href = '/Request'; 
     };

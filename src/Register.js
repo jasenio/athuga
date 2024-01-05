@@ -22,9 +22,7 @@ export const Register = () => {
         e.preventDefault();
 
           if (window.confirm('Are you sure you want to submit?')) {
-              // Logic for confirmation
             } else {
-              // Logic for cancellation
               return;
   
             }
@@ -46,7 +44,7 @@ export const Register = () => {
               }
             }
         
-            return updatedPeriod; // Don't forget to return the updated period object
+            return updatedPeriod;
           });
             setPeriods(updatedPeriods);
           const response = await fetch('https://dmg0caf7ytwae.cloudfront.net/register', {

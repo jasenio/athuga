@@ -8,9 +8,9 @@ mongoose.connect(process.env.MONGO_URI, {
     useUnifiedTopology: true,
   });
   
-  mongoose.connection.on('error', (error) => {
-    console.error('MongoDB connection error:', error);
-  });
+mongoose.connection.on('error', (error) => {
+  console.error('MongoDB connection error:', error);
+});
 
 //Schema
 const ClassroomSchema = new mongoose.Schema({
@@ -34,7 +34,7 @@ const ClassroomSchema = new mongoose.Schema({
     default: Date.now,
   },
   studentsInside: {
-    type: [String], // Assuming the student data is stored as strings
+    type: [String],
     default: [],
     required: true,
   },

@@ -1,40 +1,47 @@
-// Import required modules and dependencies
 const {
     Classroom,
   } = require('./classroom');
   const WebSocket = require('ws');
-  function extractTeacherData(classroomId) {
+
+//Repeated function
+function getTeacherData(classroomId) {
     const teacherUsername = classroomId.substring(0, classroomId.length - 1);
     const period = classroomId.substring(classroomId.length - 1);
     return { teacherUsername, period };
 }
+
 class QueueManager {
+    // Imports the web socket server to use web sockets
     constructor(classroomId, wss) {
       this.classroomId = classroomId;
       this.queue = [];
-      this.timer = null;
       this.wss = wss;
     }
   
+    //Check out button for student (adds student to queue)
     async enqueue(student) {
-    
-        const { teacherUsername, period } = extractTeacherData(this.classroomId);
+        const { teacherUsername, period } = getTeacherData(this.classroomId);
         const classroom = await Classroom.findOne({ username: teacherUsername, period });
         if(!classroom.studentsInside.includes(student)&& !this.queue.includes(student)) return;
-        const queueWasEmpty = this.queue.length === 0; // Check if the queue was initially empty
+
+        //Adds a student to queue
         this.queue.push(student);
         await this.addQueue(student);
-        this.triggerQueueManager(); // Trigger additional actions based on the queue
       
-        // Call dequeue if the queue was initially empty and a student joins
+        // If queue is empty, the dequeue process must be prompted manually
+        const queueWasEmpty = this.queue.length === 0;
         if (queueWasEmpty) {
           await this.dequeue();
         }
-      }
-      async removeFromQueue(student) {
+    }
+
+    //Cancel button for student (removes from queue to inside)
+    async removeFromQueue(student) {
         const index = this.queue.indexOf(student);
-        const { teacherUsername, period } = extractTeacherData(this.classroomId);
+        const { teacherUsername, period } = getTeacherData(this.classroomId);
         const classroom = await Classroom.findOne({ username: teacherUsername, period });
+        
+        //Updates MongoDB to move from waiting to inside list
         if (index !== -1) {
             if (classroom.studentsWaiting.includes(student)) {
                 await Classroom.findOneAndUpdate(
@@ -45,72 +52,65 @@ class QueueManager {
                   }
                 );
               }
-          this.queue.splice(index, 1); // Remove the specific student from the queue
-          this.triggerQueueManager();
-          this.broadcast('remove', this.classroomId); // Broadcasting the removal to connected clients
-          return true; // Indicate that the removal was successful
+          //Removes student
+          this.queue.splice(index, 1); 
+
+          //WS broadcast
+          this.broadcast('remove', this.classroomId);
+          return true;
         }
-        return false; // Indicate that the student was not found in the queue
-      }
-    async manualDequeue(student) {
-       
+        return false; 
+    }
+
+    //Manually removes student (teacher CRUD function)
+    async manualDequeue(student) {  
         const index = this.queue.indexOf(student);
         if (index !== -1) {
-          this.queue.splice(index, 1); // Remove the specific student from the queue
+          // removes specific student
+          this.queue.splice(index, 1);
           await this.removeQueue(student);
-          this.triggerQueueManager();
           return true;
         }
         return false;
-      }
+    }
   
-      async dequeue() {
-      
-        const { teacherUsername, period } = extractTeacherData(this.classroomId);
+    //Sets a time out to remove a student from queue to outside list
+    async dequeue() {
+        const { teacherUsername, period } = getTeacherData(this.classroomId);
         const classroom = await Classroom.findOne({ username: teacherUsername, period });
         const outsideLength = classroom.studentsOutside.length;
        
         if (this.queue.length > 0) {
+          //Checks amount of students already outside to determine to wait or automatic dequeue
           const transferThreshold = 2;
        
           if (outsideLength >= transferThreshold) {
-    
-            const transferTime = 5 * 60 * 1000; // 5 minutes in milliseconds
+            
+            const transferTime = 5 * 60 * 1000;
             setTimeout(async () => {
-                    await this.transferToAnotherDatabase();
+                    await this.repeatDequeue();
             }, transferTime);
           } else {
-            await this.transferToAnotherDatabase();
+            await this.repeatDequeue();
           }
         }
-      }
-  
-    async startTimer() {
-      this.timer = setInterval(async () => this.dequeue(), 10 * 60 * 1000); // Dequeue every 5 minutes
     }
-  
-    async transferToAnotherDatabase() {
-       
+
+    //Repeats dequeue process if queue is still populated
+    async repeatDequeue() {
       if (this.queue.length > 0) {
         const student = this.queue.shift();
         await this.removeQueue(student);
         await this.dequeue();
-        this.triggerQueueManager();
       }
     }
   
-    async stopTimer() {
-      if (this.timer) {
-        clearInterval(this.timer);
-        this.timer = null;
-      }
-    }
-  
+    //Adds students to the MongoDB database and broadcasts to clients
     async addQueue(student) {
-      
-        const { teacherUsername, period } = extractTeacherData(this.classroomId);
+        const { teacherUsername, period } = getTeacherData(this.classroomId);
         const classroom = await Classroom.findOne({ username: teacherUsername, period });
       
+        //Updates MongoDB
         if (classroom.studentsInside.includes(student)) {
           await Classroom.findOneAndUpdate(
             { username: teacherUsername, period },
@@ -120,17 +120,20 @@ class QueueManager {
             }
           );
         }
+        //Broadcast
         this.wss.clients.forEach((client) => {
             if (client.readyState === WebSocket.OPEN && client.classroomId === this.classroomId) {
               client.send(JSON.stringify({ action: 'add-to-queue', student }));
             }
           });
     }
+
+    //Removes student on the MongoDB database and broadcasts to clientts
     async removeQueue(student) {
-        
-        const { teacherUsername, period } = extractTeacherData(this.classroomId);
+        const { teacherUsername, period } = getTeacherData(this.classroomId);
         const classroom = await Classroom.findOne({ username: teacherUsername, period });
         
+         //Updates MongoDB
         if (classroom.studentsWaiting.includes(student)) {
           await Classroom.findOneAndUpdate(
             { username: teacherUsername, period },
@@ -140,7 +143,8 @@ class QueueManager {
             }
           );
         }
-        // Broadcast the updated lists to all connected clients
+
+        // Broadcast to clients
         this.wss.clients.forEach((client) => {
             if (client.readyState === WebSocket.OPEN  && client.classroomId === this.classroomId) {
                 const classroomId = this.classroomId;
@@ -148,23 +152,17 @@ class QueueManager {
             }
         });
         
-      }
-      broadcast(action, classroomId) {
-        this.wss.clients.forEach((client) => {
-          if (client.readyState === WebSocket.OPEN && client.classroomId === classroomId) {
-            client.send(JSON.stringify({ action, classroomId }));
-          }
-        });
-      }
-    triggerQueueManager() {
-      this.manageQueue();
     }
-  
-    manageQueue() {
-      
-      // Perform additional actions here based on the queue
+    
+    //Broadcasts queue action with web socket
+    broadcast(action, classroomId) {
+      this.wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN && client.classroomId === classroomId) {
+          client.send(JSON.stringify({ action, classroomId }));
+        }
+      });
     }
-  }
+}
   
 module.exports =  QueueManager;
   

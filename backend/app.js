@@ -2,41 +2,31 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
-const {isTeacher} = require('./auth');
-//Utility Imports
-const {
-    User,
-    hashPassword,
-    verifyPassword,
-    getUserByUsername,
-} = require('./user');
 
-const {
-  Classroom,
-} = require('./classroom');
+//Utility Imports
+const {User} = require('./user');
+const { Classroom } = require('./classroom');
 const { configureMiddleware } = require('./middleware'); 
 
 //Router Imports
 const { authRouter } = require('./routes/authRoute');
 const { dashRouter } = require('./routes/dashRoute');
-const { classRouter, isAuthenticated } = require('./routes/classRoute');
+const { classRouter } = require('./routes/classRoute');
+
 //Starts middleware
 configureMiddleware(app);
 const test = false;
 const front = test? "http://localhost:3000" : "https://athuga.com";
+
 //Routes
 app.get("/", (req, res) => {
- 
   return res.send("App is Working");
-
 });
 app.use(authRouter);
 app.use(dashRouter);
 app.use('/class', classRouter);
 
-//Server start
-
-//Delete classroom
+//Extra
 app.post('/classrooms', async (req, res) => {
   try {
     const { username, perNum, perClass } = req.body;
@@ -67,7 +57,7 @@ app.post('/classrooms', async (req, res) => {
   }
 });
 
-  //Delete Classroom
+//Deletes a classroom
 app.delete('/classrooms/:username', async (req, res) => {
     const username = req.params.username;
   
@@ -91,8 +81,6 @@ app.delete('/classrooms/:username', async (req, res) => {
     }
 });
 
-
-  //Admin
 //Find classroom and period
 app.post('/all-class/:username/', async (req, res) => {
   try {
@@ -117,16 +105,14 @@ app.post('/all-class/:username/', async (req, res) => {
 
 const port = process.env.PORT || 8080;
 app.use(cors({
-  origin: 'https://athuga.com', // Replace with the actual origin of your frontend application
+  origin: 'https://athuga.com', 
   methods: 'OPTIONS, GET, POST, DELETE',
-  allowedHeaders: '*', // Make sure to replace this with the actual allowed headers
+  allowedHeaders: '*', 
   credentials: true,
 }));
 
-//Server && Socket.io
-const https = require('https');
+//Server && Websocket
 const http = require('http');
-const fs = require('fs');
 const url = require('url');
 const WebSocket = require('ws');
 
@@ -134,8 +120,11 @@ const server = http.createServer(app);
 const wss = new WebSocket.Server({ noServer: true });
 const { v4: uuidv4 } = require('uuid');
 
+//Websocket connections
 wss.on('connection', (ws, upgradeUrl) => {
   ws.id = uuidv4();
+
+  //Creates session and classroom ID
   const urlParams = new URLSearchParams(upgradeUrl.split("?")[1]);
   const sessionId = urlParams.get("sessionId");
   const classroomId = urlParams.get("classroomId");
@@ -144,24 +133,25 @@ wss.on('connection', (ws, upgradeUrl) => {
   console.log("Current WebSocket ID: ", ws.id);
   console.log("Current Classroom ID: ", ws.classroomId);
   console.log("Current Name: ", ws.name);
+
   ws.on('message', async (message) => {
     const data = JSON.parse(message);
     const { action, classroomId, name, request } = data;
+     // All message functions
     try {
-        // Implement your logic to update the lists here
+       
+        //Adds student to inside when joining class
         if (action === 'add-to-inside') {
-
-            const { teacherUsername, period } = extractTeacherData(classroomId);
+            const { teacherUsername, period } = getTeacherData(classroomId);
             const classroom = await Classroom.findOne({ username: teacherUsername, period });
+
+            //Checks if student isn't already inside before adding
             if(!(classroom.studentsInside.includes(name)||classroom.studentsOutside.includes(name)||classroom.studentsWaiting.includes(name))){
               classroom.studentsInside.push(name);
-              // Any other necessary operations
               await classroom.save();
-            } else {
-              
             }
 
-            // Broadcast the updated lists to all connected clients
+             // Broadcast the list
             wss.clients.forEach((client) => {
              
                 if (client.readyState === WebSocket.OPEN && client.classroomId === classroomId) {
@@ -169,18 +159,21 @@ wss.on('connection', (ws, upgradeUrl) => {
                     client.send(JSON.stringify({ action, classroomId }));
                 }
             });
-        } else if (action === 'move-to-waiting') {
-            // Handle the removal from the waiting list
-          
+        }
+        // Moves student to waiting list
+        else if (action === 'move-to-waiting') {
+          //Trys to find queue
             const queue = searchQueueById(classroomId);
+            //Makes a new queuemanager if no queue was created
             if(queue===null){
               manageNewQueue(classroomId);
               const curQueue = searchQueueById(classroomId);
+              //Adds student to queuemanager
               curQueue.enqueue(name);
             }else{
               queue.enqueue(name);
             }
-
+            //broadcast to clients
             wss.clients.forEach((client) => {
             
                 if (client.readyState === WebSocket.OPEN && client.classroomId === classroomId) {
@@ -188,18 +181,20 @@ wss.on('connection', (ws, upgradeUrl) => {
                 }
             });
         }
-        // Handle other actions accordingly
+        //Moves student  to inside
         else if (action === 'move-to-inside') {
-        
-
-            const { teacherUsername, period } = extractTeacherData(classroomId);
+            const { teacherUsername, period } = getTeacherData(classroomId);
             const classroom = await Classroom.findOne({ username: teacherUsername, period });
+
+            //Moves student from either inside or waiting list to inside
+            //Check if student in outside
             if(!classroom.studentsInside.includes(name) && (classroom.studentsOutside.includes(name))){
               classroom.studentsInside.push(name);
               classroom.studentsWaiting = classroom.studentsWaiting.filter(studentId => studentId !== name);
-              classroom.studentsOutside = classroom.studentsOutside.filter(studentId => studentId !== name);
-              // Any other necessary operations
+              classroom.studentsOutside = classroom.studentsOutside.filter(studentId => studentId !== name);     
               await classroom.save();
+              
+              //Check if student in waiting
             } else if(!classroom.studentsInside.includes(name) && (classroom.studentsWaiting.includes(name))){
               const queue = searchQueueById(classroomId);
                 if(queue===null){
@@ -210,51 +205,48 @@ wss.on('connection', (ws, upgradeUrl) => {
                   queue.manualDequeue(name);
                 }
               await classroom.save();
-            } else {
-            
             }
-            // Perform the necessary updates
-            // ...
-
-            // Broadcast the updated lists to all connected clients
+             // Broadcast the list
             wss.clients.forEach((client) => {
              
                 if (client.readyState === WebSocket.OPEN  && client.classroomId === classroomId) {
                     client.send(JSON.stringify({ action, classroomId }));
                 }
             });
-        } else if (action === 'move-to-outside') {
-           
-
-            const { teacherUsername, period } = extractTeacherData(classroomId);
+            
+        } 
+        //Moves student to outside
+        else if (action === 'move-to-outside') {
+            const { teacherUsername, period } = getTeacherData(classroomId);
             const classroom = await Classroom.findOne({ username: teacherUsername, period });
+
+            //Filters other lists then adds student to outside
             if(!classroom.studentsOutside.includes(name)){
               classroom.studentsOutside.push(name);
               classroom.studentsWaiting = classroom.studentsWaiting.filter(studentId => studentId !== name);
               classroom.studentsInside = classroom.studentsInside.filter(studentId => studentId !== name);
-              // Any other necessary operations
               await classroom.save();
             } else {
              
             }
-            // Perform the necessary updates
-            // ...
 
-            // Broadcast the updated lists to all connected clients
+            // Broadcast the list
             wss.clients.forEach((client) => {
           
                 if (client.readyState === WebSocket.OPEN  && client.classroomId === classroomId) {
                     client.send(JSON.stringify({ action, classroomId }));
                 }
             });
-        } else if (action === 'handle-student-request') {
-            
-            const { teacherUsername, period } = extractTeacherData(classroomId);
+      
+        } 
+        //Student requests
+        else if (action === 'handle-student-request') {
+            const { teacherUsername, period } = getTeacherData(classroomId);
             const classroom = await Classroom.findOne({ username: teacherUsername, period });
+
+            //Adds request
             classroom.requests.push({ studentId: name, request });
             await classroom.save();
-            // Handle the student request
-            // ...
 
             // Broadcast the updated lists to all connected clients
             wss.clients.forEach((client) => {
@@ -263,15 +255,13 @@ wss.on('connection', (ws, upgradeUrl) => {
                     client.send(JSON.stringify({ action, classroomId, request }));
                 }
             });
-        }else if (action === 'cancel') {
-          
-         
+        }
+        //Cancel function for students
+        else if (action === 'cancel') {
           const queue = searchQueueById(classroomId);
             if(queue!==null){
               queue.removeFromQueue(name);
             }
-
-          
 
           // Broadcast the updated lists to all connected clients
           wss.clients.forEach((client) => {
@@ -280,78 +270,83 @@ wss.on('connection', (ws, upgradeUrl) => {
                   client.send(JSON.stringify({ action, classroomId, request }));
               }
           });
-      }else if (action === 'kick') {
-        
-
-        const { teacherUsername, period } = extractTeacherData(classroomId);
-        const classroom = await Classroom.findOne({ username: teacherUsername, period });
-        if((classroom.studentsOutside.includes(name))){
-          classroom.studentsOutside = classroom.studentsOutside.filter(studentId => studentId !== name);
-          // Any other necessary operations
-          await classroom.save();
-        } else if((classroom.studentsWaiting.includes(name))){
-          const queue = searchQueueById(classroomId);
-            if(queue===null){
-              classroom.studentsWaiting = classroom.studentsWaiting.filter(studentId => studentId !== name);
-            }else{
-              queue.manualDequeue(name);
-              classroom.studentsWaiting = classroom.studentsWaiting.filter(studentId => studentId !== name);
-            }
-          await classroom.save();
-        } else if((classroom.studentsInside.includes(name))){
-          classroom.studentsInside = classroom.studentsInside.filter(studentId => studentId !== name);
-          await classroom.save();
-        } else {
-          console.log("Couldn't find student");
         }
-        
+        //Kicks student out of class
+        else if (action === 'kick') {
+          const { teacherUsername, period } = getTeacherData(classroomId);
+          const classroom = await Classroom.findOne({ username: teacherUsername, period });
 
-        // Broadcast the updated lists to all connected clients
-        wss.clients.forEach((client) => {
-            if (client.readyState === WebSocket.OPEN  && client.classroomId === classroomId) {
+          //Finds student in any list to kick out
+          if((classroom.studentsOutside.includes(name))){
+            classroom.studentsOutside = classroom.studentsOutside.filter(studentId => studentId !== name);
+            await classroom.save();
+          } else if((classroom.studentsWaiting.includes(name))){
+            const queue = searchQueueById(classroomId);
+              if(queue===null){
+                classroom.studentsWaiting = classroom.studentsWaiting.filter(studentId => studentId !== name);
+              }else{
+                queue.manualDequeue(name);
+                classroom.studentsWaiting = classroom.studentsWaiting.filter(studentId => studentId !== name);
+              }
+            await classroom.save();
+          } else if((classroom.studentsInside.includes(name))){
+            classroom.studentsInside = classroom.studentsInside.filter(studentId => studentId !== name);
+            await classroom.save();
+          } else {
+            console.log("Couldn't find student");
+          }
+          
+          // Broadcast the lists
+          wss.clients.forEach((client) => {
+              if (client.readyState === WebSocket.OPEN  && client.classroomId === classroomId) {
 
-                client.send(JSON.stringify({ action, name, request }));
-            }
-        });
-    }else if (action === 'send') {
-      const classroom = await Classroom.findOne({ username: name });
-      classroom.studentsRequests.push(request);
-     await classroom.save();
-      if(classroom){
-              // Broadcast the updated lists to all connected clients
-             
-            wss.clients.forEach((client) => {
-              if (client.readyState === WebSocket.OPEN  &&(client.classroomId === (classroom.username+classroom.period) || client.classroomId === client.name)) {
-                  client.send(JSON.stringify({ action: "success", classroomId, request }));
+                  client.send(JSON.stringify({ action, name, request }));
               }
           });
+        }
+        //Admin request panel
+        else if (action === 'send') {
+          const classroom = await Classroom.findOne({ username: name });
 
-      }else{
+          //Adds request
+          classroom.studentsRequests.push(request);
+          await classroom.save();
 
-      // Broadcast the updated lists to all connected clients
-      wss.clients.forEach((client) => {
-          if (client.readyState === WebSocket.OPEN  && (client.classroomId === (classroom.username+classroom.period) || client.classroomId === client.name)) {
-              client.send(JSON.stringify({ action: "fail", classroomId, request }));
-          }
-      });}
-  }
+          if(classroom){
+                  // Broadcast to clients (request was sent)
+                wss.clients.forEach((client) => {
+                  if (client.readyState === WebSocket.OPEN  &&(client.classroomId === (classroom.username+classroom.period) || client.classroomId === client.name)) {
+                      client.send(JSON.stringify({ action: "success", classroomId, request }));
+                  }
+              });
+
+          }else{
+
+          // Broadcast to clients (request was not sent)
+          wss.clients.forEach((client) => {
+              if (client.readyState === WebSocket.OPEN  && (client.classroomId === (classroom.username+classroom.period) || client.classroomId === client.name)) {
+                  client.send(JSON.stringify({ action: "fail", classroomId, request }));
+              }
+          });}
+        }
     } catch (error) {
         console.error('Error occurred:', error);
     }
-});
-
-function extractTeacherData(classroomId) {
-    const teacherUsername = classroomId.substring(0, classroomId.length - 1);
-    const period = classroomId.substring(classroomId.length - 1);
-    return { teacherUsername, period };
-}
-
+  });
 
   ws.on('close', () => {
     console.log('Client disconnected');
   });
+
+  //Repeated function
+  function getTeacherData(classroomId) {
+    const teacherUsername = classroomId.substring(0, classroomId.length - 1);
+    const period = classroomId.substring(classroomId.length - 1);
+    return { teacherUsername, period };
+  }
 });
-// Handle WebSocket upgrade manually
+
+// Handle WebSocket upgrade manually for websocket traffic
 server.on('upgrade', function upgrade(request, socket, head) {
   const pathname = url.parse(request.url).pathname;
   const upgradeUrl = request.url;
@@ -370,26 +365,33 @@ server.on('upgrade', function upgrade(request, socket, head) {
     }
   }
 });
+
+// Starts server
 server.listen(port, () => {
   console.log('HTTP server is listening on port ' + port);
 });
-//Proxy sever logic for queue
+
+//QueueManager for classroomss
 const QueueManager = require('./QueueManager');
+
+//List of queue managers by ID
 const queueById = {};
+
+//Creates a new queueto be used
 const manageNewQueue = async (classroomId) => {
-  // Your asynchronous function logic here
   console.log('Queue is populated');
   if (!queueById[classroomId]) {
     queueById[classroomId] = new QueueManager(classroomId, wss);
   }
 };
+
+//Searches for the queue to be used
 const searchQueueById = (classroomId) => {
   if (queueById[classroomId]) {
     return queueById[classroomId];
   } else {
     console.log(`Queue with classroom ID ${classroomId} not found.`);
     return null;
-    // You might want to handle this case based on your application's requirements
   }
 };
 

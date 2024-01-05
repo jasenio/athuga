@@ -14,13 +14,15 @@ function App() {
     const userId = Cookies.get('sessionData');
     return(!!userId);
   }
+  //Check if user is not authenticated and moves ot login
   const RequireAuth = ({ children }) => {
-    const authed = isauth(); // isauth() returns true or false based on localStorage
+    const authed = isauth();
     if (!authed) console.log('Not Logged In');
     return authed ? children : <Navigate to="/Login" />;
   }
+  //Checks if user is authenticated and moves to dashboard
   const RequireOut = ({ children }) => {
-    const authed = isauth(); // isauth() returns true or false based on localStorage
+    const authed = isauth(); 
     if (authed) console.log('Already Logged In');
     return !authed ? children : <Navigate to="/Dashboard" />;
   }
@@ -31,13 +33,16 @@ function App() {
           <Route path = "/" element = {<RequireOut>
                 <Home />
               </RequireOut>}/>
-          <Route path = "/Register" element = {<RequireOut>
+          <Route path = "/Register" element = {
+              <RequireOut>
                 <Register />
               </RequireOut>}/>
-          <Route path = "/Login" element = {<RequireOut>
+          <Route path = "/Login" element = {
+              <RequireOut>
                 <Login />
               </RequireOut>}/>
-          <Route path = "/About" element = {<RequireOut>
+          <Route path = "/About" element = {
+              <RequireOut>
                 <About />
               </RequireOut>}/>
           <Route path="/Dashboard" element={
@@ -47,9 +52,15 @@ function App() {
             }
           >
           </Route>
-          <Route path="/Dashboard/:classroomId" element={<RequireAuth><Classroom /></RequireAuth>} />
-          <Route path="/Request" element={<RequireAuth><Request /></RequireAuth>} />
-          <Route path="*" element={<Navigate to="/" />} /> {/* Redirect unspecified routes to the home route */}
+          <Route path="/Dashboard/:classroomId" element={
+            <RequireAuth>
+              <Classroom />
+            </RequireAuth>} />
+          <Route path="/Request" element={
+              <RequireAuth>
+                <Request />
+              </RequireAuth>} />
+          <Route path="*" element={<Navigate to="/" />} /> 
         </Routes>
         
       </Router>
